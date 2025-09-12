@@ -11,13 +11,12 @@ bool do_system(const char *cmd)
 {
 
 /*
- * TODO  add your code here
  *  Call the system() function with the command set in the cmd
  *   and return a boolean true if the system() call completed with success
  *   or false() if it returned a failure
 */
-
-    return true;
+    int status = system(cmd);
+    return status == 0 ? true : false;
 }
 
 /**
@@ -38,10 +37,9 @@ bool do_exec(int count, ...)
 {
     va_list args;
     va_start(args, count);
-    char * command[count+1];
+    char* command[count+1];
     int i;
-    for(i=0; i<count; i++)
-    {
+    for(i=0; i<count; i++) {
         command[i] = va_arg(args, char *);
     }
     command[count] = NULL;
@@ -56,8 +54,22 @@ bool do_exec(int count, ...)
  *   Use the command[0] as the full path to the command to execute
  *   (first argument to execv), and use the remaining arguments
  *   as second argument to the execv() command.
- *
 */
+
+    int pid = fork();
+
+    if(pid > 0) { // Child process
+        int status;
+        execv(command[0], &command[1]);
+        waitpid(pid, &status, 0);
+        return WIFEXITED(status) && WEXITSTATUS(status) == 0;
+
+    } else if(pid == 0) { // Parent process
+        
+        
+    } else { // FAILURE
+        return false;
+    }
 
     va_end(args);
 

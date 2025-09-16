@@ -105,6 +105,7 @@ ${CROSS_COMPILE}readelf -a bin/busybox | grep "program interpreter"
 ${CROSS_COMPILE}readelf -a bin/busybox | grep "Shared library"
 echo "----9----"
 
+
 # TODO: Add library dependencies to rootfs
 cp $TC_LIBC_PATH/lib/ld-linux-aarch64.so.1 lib/
 cp $TC_LIBC_PATH/lib64/libm.so.6 lib64/

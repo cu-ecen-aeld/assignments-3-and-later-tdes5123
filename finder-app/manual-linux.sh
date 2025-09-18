@@ -107,12 +107,11 @@ echo "----9----"
 
 
 # TODO: Add library dependencies to rootfs
-ls /home
-ls /home/tdes5123
-ls /home/tdes5123/toolchains
-ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
-ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu
-ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
+ls /usr
+ls /usr/toolchains
+ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
+ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu
+ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
 ls ${TC_LIBC_PATH}
 cp ${TC_LIBC_PATH}/lib/ld-linux-aarch64.so.1 lib/
 cp ${TC_LIBC_PATH}/lib64/libm.so.6 lib64/

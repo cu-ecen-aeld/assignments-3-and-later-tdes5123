@@ -6,6 +6,10 @@ set -e
 set -u
 
 echo "----1----"
+ls /host-toolchains
+
+ls /host-toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
+echo "----2----"
 export PATH=/home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH
 
 
@@ -107,9 +111,7 @@ echo "----9----"
 
 
 # TODO: Add library dependencies to rootfs
-ls /home
 
-ls /usr
 ls /usr/toolchains
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu

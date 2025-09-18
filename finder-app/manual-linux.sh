@@ -112,7 +112,6 @@ ls /usr/toolchains
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
-ls ${TC_LIBC_PATH}
 cp ${TC_LIBC_PATH}/lib/ld-linux-aarch64.so.1 lib/
 cp ${TC_LIBC_PATH}/lib64/libm.so.6 lib64/
 cp ${TC_LIBC_PATH}/lib64/libresolv.so.2 lib64/

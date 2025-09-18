@@ -107,6 +107,8 @@ echo "----9----"
 
 
 # TODO: Add library dependencies to rootfs
+ls /home
+
 ls /usr
 ls /usr/toolchains
 ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu

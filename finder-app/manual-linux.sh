@@ -82,9 +82,9 @@ echo "----6----"
 cd "$OUTDIR"
 if [ ! -d "${OUTDIR}/busybox" ]
 then
-git clone git://busybox.net/busybox.git
+#git clone git://busybox.net/busybox.git
     cd busybox
-    git checkout ${BUSYBOX_VERSION}
+    #git checkout ${BUSYBOX_VERSION}
     # TODO:  Configure busybox
 else
     cd busybox
@@ -107,6 +107,13 @@ echo "----9----"
 
 
 # TODO: Add library dependencies to rootfs
+ls /home
+ls /home/tdes5123
+ls /home/tdes5123/toolchains
+ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
+ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu
+ls /home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
+ls ${TC_LIBC_PATH}
 cp ${TC_LIBC_PATH}/lib/ld-linux-aarch64.so.1 lib/
 cp ${TC_LIBC_PATH}/lib64/libm.so.6 lib64/
 cp ${TC_LIBC_PATH}/lib64/libresolv.so.2 lib64/

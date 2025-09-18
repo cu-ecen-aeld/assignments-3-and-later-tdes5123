@@ -10,10 +10,10 @@ ls /host-toolchains
 
 ls /host-toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
 echo "----2----"
-export PATH=/home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH
+export PATH=/host-toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/bin:$PATH
 
 
-TC_LIBC_PATH=/home/tdes5123/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
+TC_LIBC_PATH=/host-toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
 
 OUTDIR=/tmp/aeld
 KERNEL_REPO=git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git
@@ -112,10 +112,7 @@ echo "----9----"
 
 # TODO: Add library dependencies to rootfs
 
-ls /usr/toolchains
-ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu
-ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu
-ls /usr/toolchains/arm-gnu-toolchain-13.3.rel1-x86_64-aarch64-none-linux-gnu/aarch64-none-linux-gnu/libc
+ls ${TC_LIBC_PATH}
 cp ${TC_LIBC_PATH}/lib/ld-linux-aarch64.so.1 lib/
 cp ${TC_LIBC_PATH}/lib64/libm.so.6 lib64/
 cp ${TC_LIBC_PATH}/lib64/libresolv.so.2 lib64/

@@ -1,6 +1,6 @@
 #!/bin/sh
 
-DAEMON=aesdsocket
+DAEMON=/usr/bin/aesdsocket
 OPTS="-d"
 
 case "$1" in

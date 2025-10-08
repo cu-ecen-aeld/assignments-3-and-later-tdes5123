@@ -1,6 +1,6 @@
 CROSS_COMPILE ?=
 
-CC := $(CROSS_COMPILE)gcc
+CC ?= $(CROSS_COMPILE)gcc
 
 $(info Using CC = $(CC))
 

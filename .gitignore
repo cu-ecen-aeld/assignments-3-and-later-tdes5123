@@ -7,3 +7,4 @@ aesd-build
 .vscode/
 test.sh.log
 CROSS_COMPILE=*
+aesdsocket

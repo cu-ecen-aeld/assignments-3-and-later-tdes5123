@@ -2,7 +2,10 @@ CROSS_COMPILE ?=
 
 CC ?= $(CROSS_COMPILE)gcc
 
-$(info Using CC = $(CC))
+$(info ====================================)
+$(info = Building aesdsocket for target   =)
+$(info = CC = $(CC))
+$(info ====================================)
 
 all: aesdsocket
 

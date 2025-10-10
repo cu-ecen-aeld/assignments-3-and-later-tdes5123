@@ -8,7 +8,7 @@ case "$1" in
     echo "Starting $DAEMON..."
     start-stop-daemon --start --quiet \
     --pidfile /var/run/$DAEMON.pid --make-pidfile \
-    --background --exec /usr/sbin/$DAEMON -- $OPTS
+    --background --exec $DAEMON -- $OPTS
     ;;
   stop)
     echo "Stopping $DAEMON..."

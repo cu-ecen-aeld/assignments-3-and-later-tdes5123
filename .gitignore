@@ -8,3 +8,5 @@ aesd-build
 test.sh.log
 CROSS_COMPILE=*
 aesdsocket
+server/aesdsocket
+server/valgrind-out.txt

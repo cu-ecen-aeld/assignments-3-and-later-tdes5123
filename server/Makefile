@@ -8,9 +8,13 @@ $(info = CC = $(CC))
 $(info ====================================)
 
 all: aesdsocket
+debug: aesdsocket-d
 
 aesdsocket: aesdsocket.c
 	$(CC) -o aesdsocket aesdsocket.c
+
+aesdsocket-d: aesdsocket.c	
+	$(CC) -g -O0 -o aesdsocket-d aesdsocket.c
 
 clean:
 	rm -f aesdsocket

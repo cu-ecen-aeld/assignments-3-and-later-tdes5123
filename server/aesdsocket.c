@@ -25,17 +25,15 @@ typedef struct ConnectionArgs {
     int clientSock;
 } ConnectionArgs;
 
-volatile int serverRunning = 1;
-atomic_int shuttingDown = 0;
+// volatile int serverRunning = 1;
+volatile atomic_int serverRunning = 1;
 
 // Mutexes
 pthread_mutex_t fileMutex;
 pthread_mutex_t errorMutex;
 
-void createSockDataFile() 
+void createSockDataDir() 
 {
-    FILE *fp;
-
     // Make sure the directory exists
     struct stat st = {0};
     if (stat("/var/tmp", &st) == -1) {
@@ -46,11 +44,23 @@ void createSockDataFile()
     }
 }
 
+FILE* openSockDataFile() 
+{
+    FILE* fp = fopen("/var/tmp/aesdsocketdata", "a+");
+    if(errno != 0 || fp == NULL) {
+        pthread_mutex_lock(&errorMutex);
+        perror("something wrong with file descriptor");
+        pthread_mutex_unlock(&errorMutex);
+    }
+    return fp;
+}
+
 void* handleClient(void* args) 
 {
     ConnectionArgs* connArgs = (ConnectionArgs*)args;
     struct sockaddr_in remoteAddr;
     char buff[BUFF_SZ] = {0};
+
     size_t charsAdded = 0;
 
     // Log that the connection has been made
@@ -70,25 +80,32 @@ void* handleClient(void* args)
     
     // Log that the connection has been accepted (thread safe)
     syslog(LOG_INFO, "Accepted connection from %s", remoteIp);
-
-    // File to hold incoming data
-    createSockDataFile();
-    FILE *fp = fopen("/var/tmp/aesdsocketdata", "a+");
     
     // Receive data while there's data to read -
-    while (1 && !shuttingDown) {
+    while (serverRunning) {
         int rd = recv(connArgs->clientSock, buff, BUFF_SZ, 0);
         if (rd < 0) {
+            pthread_mutex_lock(&errorMutex);
             perror("recv failed");
+            pthread_mutex_unlock(&errorMutex);
             close(connArgs->clientSock);
             return NULL;
         } else if (rd == 0) { // Connection closed
             break;
         } else {
             // Write to file
+            pthread_mutex_lock(&fileMutex);
+
+            FILE* fp = openSockDataFile();
+
             fwrite(buff, sizeof(char), rd, fp);
+            fclose(fp);
+            pthread_mutex_unlock(&fileMutex);
+
             charsAdded += rd;
+            pthread_mutex_lock(&errorMutex);
             printf("Received %d bytes: %.*s", rd, rd, buff);
+            pthread_mutex_unlock(&errorMutex);
 
             // Check for newline to end
             if (buff[rd - 1] == '\n') {
@@ -98,15 +115,24 @@ void* handleClient(void* args)
     }
 
     // Send back the file contents
-    fseek(fp, 0, SEEK_SET);
-    // fseek(fp, -charsAdded, SEEK_END); // Do I need this?
-    while (fgets(buff, BUFF_SZ, fp) != NULL) {
-        printf("sending: %s", buff);
-        // send(clientSock, buff, BUFF_SZ, 0);
-        send(connArgs->clientSock, buff, strlen(buff), 0);
-    }
+        pthread_mutex_lock(&fileMutex);
 
+    FILE* fp = openSockDataFile();
+    fseek(fp, 0, SEEK_SET);
+    while (fgets(buff, BUFF_SZ, fp) != NULL) {
+        pthread_mutex_lock(&errorMutex);
+        printf("sending: %s", buff);
+        pthread_mutex_unlock(&errorMutex);
+
+        size_t len = strnlen(buff, BUFF_SZ);
+        if(len > 0) {
+            send(connArgs->clientSock, buff, strlen(buff), 0);
+        }
+    }
     fclose(fp);
+    pthread_mutex_unlock(&fileMutex);
+
+
     close(connArgs->clientSock);
 
     // Log that the connection has been closed
@@ -115,12 +141,52 @@ void* handleClient(void* args)
     return NULL;
 }
 
+void cleanup(Node* current) {
+    Node* next;
+
+    while (current != NULL) {
+        next = current->next;  // save next node
+        free(current);         // free current node
+        current = next;        // move to next node
+    }
+}
+
+// Joins all server threads in the linked list and cleans up the list
+void waitForServerThreadJoins(Node* head) {
+    Node* current = head;
+    while (current != NULL) {
+        pthread_join(current->connectionWorker, NULL);
+        Node* temp = current;
+        current = current->next;
+        free(temp);
+    }
+}
+
+// Thread function to append timestamps every 10 seconds
+void timestampAppender() {
+    while (serverRunning) {
+        sleep(10);
+
+        // Append timestamp to end of file
+        pthread_mutex_lock(&fileMutex);
+        FILE *fp = fopen("/var/tmp/aesdsocketdata", "a+");
+        if (fp != NULL) {
+            char buff[64];
+            time_t now = time(NULL);
+            strftime(buff, sizeof(buff), "timestamp: %Y-%m-%d %H:%M:%S\n", localtime(&now));
+            fputs(buff, fp);
+            fclose(fp);
+        }
+        pthread_mutex_unlock(&fileMutex);
+    }
+}
+
 int startServer(int daemonMode)
 {
     ConnectionArgs connArgs;
     memset(&connArgs, 0, sizeof(connArgs));
     struct sockaddr_in addr;
-    Node *head = NULL, *tail = NULL;
+    Node* head = NULL, *tail = NULL;
 
     // Create the in socket
     connArgs.sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -146,6 +212,16 @@ int startServer(int daemonMode)
         perror("daemon");
         close(connArgs.clientSock);
         exit(EXIT_FAILURE);
+    }
+
+    // Start the timestamp appending thread
+    pthread_t timestampThread;
+    if (pthread_create(&timestampThread, NULL, (void*)timestampAppender, NULL) != 0) {
+        pthread_mutex_lock(&errorMutex);
+        perror("pthread_create for timestampAppender failed");
+        pthread_mutex_unlock(&errorMutex);
+        close(connArgs.clientSock);
+        return 1;
     }
 
     while(serverRunning) {
@@ -201,7 +277,8 @@ int startServer(int daemonMode)
 
             // Join if finished and remove from list
             printf("Trying to join thread %ld\n", current->connectionWorker);
-            if (pthread_tryjoin_np(current->connectionWorker, NULL) == 0) {
+            // if (pthread_tryjoin_np(current->connectionWorker, NULL) == 0) {
+            if (pthread_join(current->connectionWorker, NULL) == 0) {
                 if(prev == NULL) {
                     head = current->next;
                 } else {
@@ -216,9 +293,15 @@ int startServer(int daemonMode)
                 current = current->next;
             }
         }
+
+        waitForServerThreadJoins(head);
     }
 
-    // Close connection
+    // Wait for timestamp thread to finish
+    pthread_join(timestampThread, NULL);
+
+    // Cleanup and close server socket
+    cleanup(head);
     close(connArgs.sock);
 }
 
@@ -232,17 +315,9 @@ void terminateGracefully(int signum)
     serverRunning = 0;
 }
 
-void handleSigs(int sig) {
-    shuttingDown = 1;     // async-signal-safe
-}
-
 int main(int argc, char *argv[]) 
 {
-    struct sigaction sa;
-    memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = handleSigs;
-    sigaction(SIGINT, &sa, NULL);
-    sigaction(SIGTERM, &sa, NULL);
+    createSockDataDir();
 
     // Initialize mutexes
     pthread_mutex_init(&fileMutex, NULL);
